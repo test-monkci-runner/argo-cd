@@ -108,7 +108,7 @@ jobs:
           registry: quay.io
           username: ${{ secrets.quay_username }}
           password: ${{ secrets.quay_password }}
-        if: ${{ inputs.quay_image_name && inputs.push }}
+        if: false
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
@@ -116,14 +116,14 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.ghcr_username }}
           password: ${{ secrets.ghcr_password }}
-        if: ${{ inputs.ghcr_image_name && inputs.push }}
+        if: false
 
       - name: Login to dockerhub Container Registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
-        if: ${{ inputs.docker_image_name && inputs.push }}
+        if: false
 
       - name: Set up build args for container image
         run: |
