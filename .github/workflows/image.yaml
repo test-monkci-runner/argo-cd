@@ -20,7 +20,7 @@ jobs:
   set-vars:
     permissions:
       contents: read
-    runs-on: [self-hosted, monkci-runners-8vcpu]
+    runs-on: monkci-runners-4vcpu
     outputs:
       image-tag: ${{ steps.image.outputs.tag}}
       platforms: ${{ steps.platforms.outputs.platforms }}
