@@ -9,38 +9,17 @@ on:
       - master
     types: [labeled, unlabeled, opened, synchronize, reopened]
 
-# Concurrency disabled for testing - allows parallel runs
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions: {}
 
 jobs:
-  benchmark:
-    runs-on: monkci-runners-4vcpu
-    timeout-minutes: 20
-
-    steps:
-    # 1. Grab the code (even if we don't need it, good practice)
-    - uses: actions/checkout@v4
-
-    # 2. Download Geekbench 6.4 CLI tarball
-    - name: Download Geekbench
-      run: |
-        curl -sSL -o Geekbench-6.tar.gz \
-          https://cdn.geekbench.com/Geekbench-6.4.0-Linux.tar.gz
-        tar -xzf Geekbench-6.tar.gz
-        mv Geekbench-6.4.0-Linux geekbench
-    # 3. Run benchmark and save stdout
-    - name: Run Geekbench CPU benchmark
-      id: geekbench
-      run: |
-        ./geekbench/geekbench_x86_64 --cpu | tee geekbench.log
   set-vars:
     permissions:
       contents: read
-    runs-on: monkci-runners-4vcpu
+    runs-on: [self-hosted, monkci-runners-4vcpu]
     outputs:
       image-tag: ${{ steps.image.outputs.tag}}
       platforms: ${{ steps.platforms.outputs.platforms }}
@@ -61,7 +40,6 @@ jobs:
           fi
           echo "Building image for platforms: $IMAGE_PLATFORMS"
           echo "platforms=$IMAGE_PLATFORMS" >> $GITHUB_OUTPUT
-
   build-only:
     needs: [set-vars]
     permissions:
@@ -124,7 +102,7 @@ jobs:
       contents: write # for git to push upgrade commit if not already deployed
       packages: write # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
     if: false
-    runs-on: monkci-runners-4vcpu
+    runs-on: [self-hosted, monkci-runners-4vcpu]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - run: git clone "https://$TOKEN@github.com/argoproj/argoproj-deployments"
