@@ -49,7 +49,7 @@ jobs:
       packages: write
       id-token: write
     # CHANGED: Added check to ensure this does NOT run on workflow_dispatch
-    if: github.event_name != 'push' && github.event_name != 'workflow_dispatch'
+    if: github.event_name == 'push' && github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/image-reuse.yaml
     with:
       go-version: 1.25.3
@@ -76,40 +76,3 @@ jobs:
       quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
       ghcr_username: ${{ github.actor }}
       ghcr_password: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-publish-provenance:
-    needs:
-      - build-and-publish
-    permissions:
-      actions: read
-      id-token: write
-      packages: write
-    if: false
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
-    with:
-      image: ghcr.io/argoproj/argo-cd/argocd
-      digest: ${{ needs.build-and-publish.outputs.image-digest }}
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
-
-  Deploy:
-    needs:
-      - build-and-publish
-      - set-vars
-    permissions:
-      contents: write
-      packages: write
-    if: false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - run: git clone "https://$TOKEN@github.com/argoproj/argoproj-deployments"
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
-      - run: |
-          docker run -u $(id -u):$(id -g) -v $(pwd):/src -w /src --rm -t ghcr.io/argoproj/argo-cd/argocd:${{ needs.set-vars.outputs.image-tag }} kustomize edit set image quay.io/argoproj/argocd=ghcr.io/argoproj/argo-cd/argocd:${{ needs.set-vars.outputs.image-tag }}
-          git config --global user.email 'ci@argoproj.com'
-          git config --global user.name 'CI'
-          git diff --exit-code && echo 'Already deployed' || (git commit -am 'Upgrade argocd to ${{ needs.set-vars.outputs.image-tag }}' && git push)
-        working-directory: argoproj-deployments/argocd
