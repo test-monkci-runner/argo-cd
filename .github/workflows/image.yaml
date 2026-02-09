@@ -22,7 +22,7 @@ jobs:
   set-vars:
     permissions:
       contents: read
-    runs-on:  ubuntu-latest
+    runs-on:  [ self-hosted , monkci-runners-4vcpu ]
     outputs:
       image-tag: ${{ steps.image.outputs.tag}}
       platforms: ${{ steps.platforms.outputs.platforms }}
