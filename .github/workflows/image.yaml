@@ -42,19 +42,6 @@ jobs:
           echo "Building image for platforms: $IMAGE_PLATFORMS"
           echo "platforms=$IMAGE_PLATFORMS" >> $GITHUB_OUTPUT
 
-  build-only:
-    needs: [set-vars]
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    # CHANGED: Added check to ensure this does NOT run on workflow_dispatch
-    if: github.event_name == 'push' && github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/image-reuse.yaml
-    with:
-      go-version: 1.25.3
-      platforms: ${{ needs.set-vars.outputs.platforms }}
-      push: false
 
   build-and-publish:
     needs: [set-vars]
